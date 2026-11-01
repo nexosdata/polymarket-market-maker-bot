@@ -133,35 +133,35 @@ The normalized OFI drives the short-term micro-price drift $\alpha \cdot \text{O
 
 ```mermaid
 flowchart TD
-    subgraph Data Feeds
-        N[NaxosData Institutional L2 Feed] --> OB[Level2OrderBook]
-        P[Polymarket CLOB API] --> OB
-        K[Kalshi Market Data] --> OB
+    subgraph DataFeeds["Data Feeds"]
+        N["NaxosData Institutional L2 Feed"] --> OB["Level2OrderBook"]
+        P["Polymarket CLOB API"] --> OB
+        K["Kalshi Market Data"] --> OB
     end
 
-    subgraph Microstructure Engine
-        OB --> |Compute| MID[Mid-Price & Spread]
-        OB --> |Cont-Stoikov| OFI[Order Flow Imbalance OFI]
-        OB --> |Depth Weighted| OBI[Order Book Imbalance OBI]
+    subgraph MicrostructureEngine["Microstructure Engine"]
+        OB -->|Compute| MID["Mid-Price & Spread"]
+        OB -->|Cont-Stoikov| OFI["Order Flow Imbalance OFI"]
+        OB -->|Depth Weighted| OBI["Order Book Imbalance OBI"]
     end
 
-    subgraph Strategy Core
-        MID --> AS[AvellanedaStoikovStrategy]
+    subgraph StrategyCore["Strategy Core"]
+        MID --> AS["AvellanedaStoikovStrategy"]
         OFI --> AS
         OBI --> AS
-        INV[Current Inventory q] --> AS
-        CFG[StrategyConfig: gamma, sigma, kappa] --> AS
-        AS --> |Logit Bounded Math| RES[Reservation Price r]
-        AS --> |Optimal Spread| QP[QuotePair: Bid & Ask Quotes]
+        INV["Current Inventory q"] --> AS
+        CFG["StrategyConfig (gamma, sigma, kappa)"] --> AS
+        AS -->|Logit Bounded Math| RES["Reservation Price r"]
+        AS -->|Optimal Spread| QP["QuotePair: Bid & Ask Quotes"]
     end
 
-    subgraph Execution & Risk
-        QP --> AS_GUARD{Adverse Selection Check}
-        AS_GUARD --> |Triggered| CANCEL[Instant Order Cancellation]
-        AS_GUARD --> |Normal| REST[Post Resting Limit Orders]
-        REST --> ENGINE[SimulatedExecutionEngine / CLOB]
-        ENGINE --> FILLS[Trade Execution]
-        FILLS --> PNL[Real-Time PnL & Inventory Variance]
+    subgraph ExecutionRisk["Execution & Risk"]
+        QP --> AS_GUARD{"Adverse Selection Check"}
+        AS_GUARD -->|Triggered| CANCEL["Instant Order Cancellation"]
+        AS_GUARD -->|Normal| REST["Post Resting Limit Orders"]
+        REST --> ENGINE["SimulatedExecutionEngine / CLOB"]
+        ENGINE --> FILLS["Trade Execution"]
+        FILLS --> PNL["Real-Time PnL & Inventory Variance"]
         PNL --> INV
     end
 ```
